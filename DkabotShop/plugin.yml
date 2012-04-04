@@ -9,28 +9,22 @@ description: Dkabot's recreation of VirtualShop.
 commands:
   sell:
     description: Put an item in your inventory on the market for purchase.
-    usage: |
-           /<command> <item> <amount> [price] - Puts <amount> of <item> on the market for [price]. If no price is provided, it will use the last provided one if possible.
+    usage: /<command> <item> <amount> [price] - Puts <amount> of <item> on the market for [price]. If no price is provided, it will use the last provided one if possible.
   cancel:
     description: Removes an item you are selling from the market and gives you the unsold amounts back.
-    usage: |
-           /<command> <item> [amount] - Takes [[amount] of] <item> off the market.
+    usage: /<command> <item> [amount] - Takes [[amount] of] <item> off the market.
   price:
     description: Sets the price on an item you are selling
-    usage: |
-           /<command> <item> <price> - Sets price of <item> in your shop to <price>.
+    usage: /<command> <item> <price> - Sets price of <item> in your shop to <price>.
   buy:
     description: Buy an amount of an item off the market.
-    usage: |
-
+    usage: /<command> <item> <amount> [max price] - Attempt to buy <amount> of <item> [only if the amount per price is less than [max price]]
   stock:
     description: Look at current items for sale, with stock/prices.
-    usage: |
-           /<command> [player] [item] [page] - Look at [page number [page] of] [[player]'s] items [or [item]] for sale.
+    usage: /<command> [player] [item] [page] - Look at [page number [page] of] [[player]'s] items [or [item]] for sale.
   sales:
     description: Get a history of items sold
-    usage: |
-           /<command> [item] [page] - Get [page number [page] of] sales history [of [item]].
+    usage: /<command> [item] [page] - Get [page number [page] of] sales history [of [item]].
 
 permissions:
   dkabotshop.*:
