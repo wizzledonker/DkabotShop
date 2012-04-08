@@ -45,8 +45,17 @@ public class DkabotShop extends JavaPlugin {
 			return;
 		}
         //Configuration Validator
-		if(validateConfig() == false) {
-			log.severe("[DkabotShop] Error in item names in configuration! Did you use item material names?");
+		List<String> result = validateConfig();
+		if(result == null) getServer().getPluginManager().disablePlugin(this);
+		if(!result.isEmpty()) {
+			log.severe("[DkabotShop] Error(s) in configuration!");
+			for(int i = 0; i < result.size();) {
+				String error = result.get(i).split(",")[0];
+				String area = result.get(i).split(",")[1];
+				log.severe("[DkabotShop] Error on " + error + " in the " + area + " section!");
+				i++;
+			}
+			log.severe("[DkabotShop] Disabling due to above errors...");
 			getServer().getPluginManager().disablePlugin(this);
 		}
         //The rest of onEnable()
@@ -162,22 +171,30 @@ public class DkabotShop extends JavaPlugin {
 			saveConfig();
 		}
 		
-		private boolean validateConfig() {
-			for(int i = 0; i < (getConfig().getStringList("ItemAlias")).size();) {
-				List<String> itemAlias = getConfig().getStringList("ItemAlias");
-				if(itemAlias.get(i).split(",").length != 2) return false;
-				if(Material.getMaterial(itemAlias.get(i).split(",")[1]) == null) return false;
-				i++;
+		private List<String> validateConfig() {
+			try {
+				List<String> itemsWrong = new ArrayList<String>();
+				for(int i = 0; i < (getConfig().getStringList("ItemAlias")).size();) {
+					List<String> itemAlias = getConfig().getStringList("ItemAlias");
+					if(itemAlias.get(i).split(",").length != 2) itemsWrong.add("formatting,ItemAlias");
+					else if(Material.getMaterial(itemAlias.get(i).split(",")[1]) == null) itemsWrong.add("formatting,ItemAlias");
+					i++;
+				}
+				for(int i = 0; i < (getConfig().getStringList("Blacklist.Always").size());) {
+					if(Material.getMaterial(getConfig().getStringList("Blacklist.Always").get(i).toUpperCase()) == null) itemsWrong.add(getConfig().getStringList("Blacklist.Always").get(i) + ",Blacklist Always");
+					i++;
+				}
+				for(int i = 0; i < (getConfig().getStringList("Blacklist.IfDamaged").size());) {
+					if(Material.getMaterial(getConfig().getStringList("Blacklist.IfDamaged").get(i).toUpperCase()) == null) itemsWrong.add(getConfig().getStringList("Blacklist.IfDamaged").get(i) + ",Blacklist IfDamaged");
+					i++;
+				}
+				return itemsWrong;
 			}
-			for(int i = 0; i < (getConfig().getStringList("Blacklist.Always").size());) {
-				if(Material.getMaterial(getConfig().getStringList("Blacklist.Always").get(i).toUpperCase()) == null) return false;
-				i++;
+			catch (Exception e) {
+				log.severe("[DkabotShop] Exception occurred while processing the configuration! Printing stacktrace and disabling...");
+				e.printStackTrace();
+				return null;
 			}
-			for(int i = 0; i < (getConfig().getStringList("Blacklist.IfDamaged").size());) {
-				if(Material.getMaterial(getConfig().getStringList("Blacklist.IfDamaged").get(i).toUpperCase()) == null) return false;
-				i++;
-			}
-			return true;
 		}
 		
 		int illegalItem(Material material) {
