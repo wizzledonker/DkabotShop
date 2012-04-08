@@ -1,6 +1,6 @@
 name: DkabotShop
 main: com.dkabot.DkabotShop.DkabotShop
-version: 1.1
+version: 1.2
 author: dkabot
 depend: [Vault]
 database: true
@@ -31,7 +31,6 @@ permissions:
     description: Gives access to all DkabotShop commands
     children:
       dkabotshop.buy: true
-      dkabotshop.find: true
       dkabotshop.stock: true
       dkabotshop.sell: true
       dkabotshop.cancel: true
@@ -40,8 +39,6 @@ permissions:
   dkabotshop.buy:
     description: Allows access to /buy
     default: true
-  dkabotshop.find:
-    description: Allows access to /find
     default: true
   dkabotshop.stock:
     description: Allows access to /stock
