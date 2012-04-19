@@ -167,13 +167,11 @@ public class DkabotShop extends JavaPlugin {
 		private void defaultConfig() {
 			//Create and set arrays
 			List<String> blacklistAlways = new ArrayList<String>();
-			List<String> blacklistIfDamaged = new ArrayList<String>();
 			List<String> itemAlias = new ArrayList<String>();
 			blacklistAlways.add(Material.AIR.toString());
 			itemAlias.add("nothing,AIR");
 			//Add default config and save
 			getConfig().addDefault("Blacklist.Always", blacklistAlways);
-			getConfig().addDefault("Blacklist.IfDamaged", blacklistIfDamaged);
 			getConfig().addDefault("ItemAlias", itemAlias);
 			getConfig().options().copyDefaults(true);
 			saveConfig();
@@ -188,18 +186,18 @@ public class DkabotShop extends JavaPlugin {
 					else {
 						String materialString = itemAlias.get(i).split(",")[1];
 						if(isInt(materialString)) {
-							if(Material.getMaterial(Integer.parseInt(materialString)) == null) itemsWrong.add("itemname,ItemAlias");
+							if(Material.getMaterial(Integer.parseInt(materialString)) == null) itemsWrong.add(materialString + ",ItemAlias");
 						}
-						else if(Material.getMaterial(materialString) == null) itemsWrong.add("itemname,ItemAlias");
+						else if(Material.getMaterial(materialString.toUpperCase()) == null) itemsWrong.add(materialString + ",ItemAlias");
 					}
 					i++;
 				}
 				for(int i = 0; i < (getConfig().getStringList("Blacklist.Always").size());) {
-					if(Material.getMaterial(getConfig().getStringList("Blacklist.Always").get(i).toUpperCase()) == null) itemsWrong.add(getConfig().getStringList("Blacklist.Always").get(i) + ",Blacklist Always");
-					i++;
-				}
-				for(int i = 0; i < (getConfig().getStringList("Blacklist.IfDamaged").size());) {
-					if(Material.getMaterial(getConfig().getStringList("Blacklist.IfDamaged").get(i).toUpperCase()) == null) itemsWrong.add(getConfig().getStringList("Blacklist.IfDamaged").get(i) + ",Blacklist IfDamaged");
+					String materialString = getConfig().getStringList("Blacklist.Always").get(i);
+					if(isInt(materialString)) {
+						if(Material.getMaterial(Integer.parseInt(materialString)) == null) itemsWrong.add(materialString + ",Blacklist Always");
+					}
+					else if(Material.getMaterial(materialString.toUpperCase()) == null) itemsWrong.add(materialString + ",Blacklist Always");
 					i++;
 				}
 				return itemsWrong;
@@ -211,35 +209,18 @@ public class DkabotShop extends JavaPlugin {
 			}
 		}
 		
-		int illegalItem(Material material) {
+		boolean illegalItem(Material material) {
 			for(int i = 0; i < getConfig().getStringList("Blacklist.Always").size();) {
-				if(Material.getMaterial(getConfig().getStringList("Blacklist.Always").get(i).toUpperCase()) == material) return 1;
+				String materialString = getConfig().getStringList("Blacklist.Always").get(i);
+				if(isInt(materialString)) {
+					if(Material.getMaterial(Integer.parseInt(materialString)) == material) return true;
+				}
+				else if(Material.getMaterial(materialString.toUpperCase()) == material) return true;
 				i++;
 			}		
-			for(int i = 0; i < getConfig().getStringList("Blacklist.IfDamaged").size();) {
-				if(Material.getMaterial(getConfig().getStringList("Blacklist.IfDamaged").get(i).toUpperCase()) == material) return 2;
-				i++;
-			}
-			return 0;
+			return false;
 		}
 
-		Integer itemUsedAmount(Material material, Player player) {
-			try {
-				if(!player.getInventory().contains(material)) return 0;
-				HashMap<Integer, ? extends ItemStack> instancesOfItem = player.getInventory().all(material);
-				Integer itemUsedCount = 0;
-				for(int i = 0; i < instancesOfItem.size();) {
-					ItemStack instanceOfItem = instancesOfItem.get(i);
-					if(instanceOfItem.getDurability() != 0) itemUsedCount++;
-					i++;
-				}
-				return itemUsedCount;
-			}
-			catch (Exception e) {
-				log.severe("An item in the used item blacklist is not compatible with the methods this uses to get durability!");
-				return null;
-			}
-		}
 		
 		Integer giveItem(ItemStack item, Player player) {
 			Integer fullItemStacks = item.getAmount() / item.getMaxStackSize();

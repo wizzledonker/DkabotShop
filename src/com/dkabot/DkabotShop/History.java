@@ -53,7 +53,7 @@ public class History implements CommandExecutor {
 				material = plugin.getMaterial(args[0], true, (Player) sender);
 				if(material != null) {
 					//Nice try, still blacklisted
-					if(plugin.illegalItem(material) == 1) {
+					if(plugin.illegalItem(material)) {
 						sender.sendMessage(ChatColor.RED + "Disallowed item!");
 						return true;
 					}
@@ -79,7 +79,7 @@ public class History implements CommandExecutor {
 					return true;
 				}
 				//nice try, still blacklisted
-				if(plugin.illegalItem(material) == 1) {
+				if(plugin.illegalItem(material)) {
 					sender.sendMessage(ChatColor.RED + "Disallowed item!");
 					return true;
 				}

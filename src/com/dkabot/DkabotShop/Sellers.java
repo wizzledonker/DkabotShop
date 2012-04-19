@@ -62,16 +62,9 @@ public class Sellers implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Invalid Item!");
 				return true;
 			}
-			if(plugin.illegalItem(material) == 1) {
+			if(plugin.illegalItem(material)) {
 				sender.sendMessage(ChatColor.RED + "Disallowed Item!");
 				return true;
-			}
-			if(plugin.illegalItem(material) == 2) {
-				amountUsed = plugin.itemUsedAmount(material, player);
-				if(amountUsed == null) {
-					sender.sendMessage(ChatColor.RED + "Sorry! Due to an error, you cannot currently sell this.");
-					return true;
-				}
 			}
 			//More logic here, to allow for a case of "all" argument
 			instancesOfItem = player.getInventory().all(material);
@@ -208,7 +201,7 @@ public class Sellers implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Invalid Item!");
 				return true;
 			}
-			if(plugin.illegalItem(material) == 1) {
+			if(plugin.illegalItem(material)) {
 				sender.sendMessage(ChatColor.RED + "Disallowed Item!");
 				return true;
 			}
@@ -326,7 +319,7 @@ public class Sellers implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Invalid Item!");
 				return true;
 			}
-			if(plugin.illegalItem(material) == 1) {
+			if(plugin.illegalItem(material)) {
 				sender.sendMessage(ChatColor.RED + "Disallowed Item!");
 				return true;
 			}

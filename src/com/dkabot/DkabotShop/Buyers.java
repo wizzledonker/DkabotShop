@@ -65,7 +65,7 @@ public class Buyers implements CommandExecutor {
 				return true;
 			}
 			//Nice try, but still no
-			if(plugin.illegalItem(material) == 1) {
+			if(plugin.illegalItem(material)) {
 				sender.sendMessage(ChatColor.RED + "Disallowed item!");
 				return true;
 			}
@@ -226,7 +226,7 @@ public class Buyers implements CommandExecutor {
 					return true;
 				}
 				//Not smuggling illegal items today!
-				if(plugin.illegalItem(material) == 1) {
+				if(plugin.illegalItem(material)) {
 					sender.sendMessage(ChatColor.RED + "Disallowed item!");
 					return true;
 				}
@@ -253,7 +253,7 @@ public class Buyers implements CommandExecutor {
 						return true;
 					}
 					//Thou shalt not use illegal items
-					if(plugin.illegalItem(material) == 1) {
+					if(plugin.illegalItem(material)) {
 						sender.sendMessage(ChatColor.RED + "Disallowed item!");
 						return true;
 					}
@@ -268,7 +268,7 @@ public class Buyers implements CommandExecutor {
 					//Not a material, has to be a player
 					if(material == null) seller = args[0];
 					//NO! To your illegal items
-					else if(plugin.illegalItem(material) == 1)	{
+					else if(plugin.illegalItem(material))	{
 						sender.sendMessage(ChatColor.RED + "Disallowed item!");
 						return true;
 					}
@@ -288,7 +288,7 @@ public class Buyers implements CommandExecutor {
 				material = plugin.getMaterial(args[0], true, player);
 				//Out with ye, requester of illegal items!
 				if(material != null) {
-					if(plugin.illegalItem(material) == 1) {
+					if(plugin.illegalItem(material)) {
 						sender.sendMessage(ChatColor.RED + "Disallowed item!");
 						return true;
 					}
