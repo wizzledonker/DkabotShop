@@ -40,9 +40,8 @@ public class Sellers implements CommandExecutor {
 			Material material;
 			Player player = (Player) sender;
 			Double cost;
-			int amount = 0;
+			Integer amount = 0;
 			Integer amountUsed = 0;
-			HashMap<Integer, ItemStack> itemsNotRemoved;
 			HashMap<Integer, ? extends ItemStack> instancesOfItem = null;
 			//Check for input length
 			if(args.length < 2) {
@@ -59,16 +58,6 @@ public class Sellers implements CommandExecutor {
 			}
 			//Get and parse input for validity
 			material = plugin.getMaterial(args[0], true, player);
-			if(args[1].equalsIgnoreCase("all")) {
-				instancesOfItem = player.getInventory().all(material);
-				if(instancesOfItem.isEmpty()) {
-					sender.sendMessage(ChatColor.RED + "You must have the item you wish to sell");
-					sender.sendMessage(ChatColor.RED + "in your inventory!");
-					return true;
-				}
-				for(Integer key : instancesOfItem.keySet()) amount += instancesOfItem.get(key).getAmount();
-			}
-			else amount = Integer.parseInt(args[1]);
 			if(material == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid Item!");
 				return true;
@@ -84,6 +73,18 @@ public class Sellers implements CommandExecutor {
 					return true;
 				}
 			}
+			//More logic here, to allow for a case of "all" argument
+			instancesOfItem = player.getInventory().all(material);
+			if(args[1].equalsIgnoreCase("all")) {
+				if(instancesOfItem.isEmpty()) {
+					sender.sendMessage(ChatColor.RED + "You must have the item you wish to sell");
+					sender.sendMessage(ChatColor.RED + "in your inventory!");
+					return true;
+				}
+				for(Integer key : instancesOfItem.keySet()) amount += instancesOfItem.get(key).getAmount();
+			}
+			else amount = Integer.parseInt(args[1]);
+			//Back to validating
 			if(amount < 1) {
 				sender.sendMessage(ChatColor.RED + "You can't sell none or negative of an item!");
 				return true;
@@ -127,19 +128,30 @@ public class Sellers implements CommandExecutor {
 				else currencyName = plugin.economy.currencyNamePlural();
 			}
 			//Remove the item from the player's inventory
-			itemsNotRemoved = player.getInventory().removeItem(new ItemStack(material, amount));
-			if(!itemsNotRemoved.isEmpty() && instancesOfItem != null) {
+			HashMap<Integer, ItemStack> itemsNotRemoved = player.getInventory().removeItem(new ItemStack(material, amount));
+			if(!itemsNotRemoved.isEmpty()) {
 				Integer amountNotRemoved = 0;
-				Integer amountInInstances = 0;
-				for(Integer key : instancesOfItem.keySet()) amountInInstances += instancesOfItem.get(key).getAmount();
+				Integer amountRemoved = 0;
 				for(Integer key : itemsNotRemoved.keySet()) amountNotRemoved += itemsNotRemoved.get(key).getAmount();
-				amount = amountInInstances - amountNotRemoved;
-				if(amount == 0) {
+				amountRemoved = amount - amountNotRemoved;
+				//Figure out how many there were in the inventory, and set the amount to that
+				if(args[1].equalsIgnoreCase("all")) {
+					if(amountRemoved <= 0) {
+						sender.sendMessage(ChatColor.RED + "You must have the item you wish to sell");
+						sender.sendMessage(ChatColor.RED + "in your inventory!");
+						return true;
+					}
+					amount = amountRemoved;
+				}
+				//You must be doing something wrong~
+				else {
+					if(amountRemoved > 0) player.getInventory().addItem(new ItemStack(material, amountRemoved));
 					sender.sendMessage(ChatColor.RED + "You must have the item you wish to sell");
 					sender.sendMessage(ChatColor.RED + "in your inventory!");
 					return true;
 				}
 			}
+
 			//Item isn't in shop, add it
 			if(DBClass == null) {
 				DBClass = new DB_ForSale();
@@ -189,7 +201,7 @@ public class Sellers implements CommandExecutor {
 			Material material;
 			ItemStack materialToReturn;
 			HashMap<Integer, ItemStack> materialNotReturned;
-			int amountNotReturned = 0;
+			Integer amountNotReturned = 0;
 			//Get and check validity of input
 			material = plugin.getMaterial(args[0], true, player);
 			if(material == null) {
@@ -209,7 +221,7 @@ public class Sellers implements CommandExecutor {
 			}
 			//In case of /cancel item amount
 			if(args.length == 2 && !args[1].equalsIgnoreCase("all")) {
-				//Set the amount to return, check if it's a valid integer
+				//Set the amount to return, check if it's a valid Integereger
 				Integer amountToReturn;
 				if(!plugin.isInt(args[1])) {
 					sender.sendMessage(ChatColor.RED + "Amount to return must be a number.");
@@ -238,12 +250,12 @@ public class Sellers implements CommandExecutor {
 			//Calculate amount to put back in the shop
 			if(!materialNotReturned.isEmpty()) {
 				//Declare variables
-				int amountInShop = DBClass.getAmount();
-				int amountReturned;
+				Integer amountInShop = DBClass.getAmount();
+				Integer amountReturned;
 				//Reset amountNotReturned, as it will obviously be different.
 				amountNotReturned = 0;
 				//Calculate amount not returned from a hashmap of ItemStacks
-				for(int i = 0; i < materialNotReturned.size();) {
+				for(Integer i = 0; i < materialNotReturned.size();) {
 					amountNotReturned = amountNotReturned + materialNotReturned.get(i).getAmount();
 					i++;
 				}

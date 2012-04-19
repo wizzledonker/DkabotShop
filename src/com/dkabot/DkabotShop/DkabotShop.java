@@ -37,7 +37,7 @@ public class DkabotShop extends JavaPlugin {
         } else {
             log.severe(String.format("Vault dependency not found! Disabling..."));
             getPluginLoader().disablePlugin(this);
-            return;
+           return;
         }
 		if(!setupEconomy()) {
 			log.severe("No economy system found. You need one to use this!");
@@ -124,7 +124,12 @@ public class DkabotShop extends JavaPlugin {
 			for(int i = 0; i < (getConfig().getStringList("ItemAlias")).size();) {
 				List<String> itemAlias = getConfig().getStringList("ItemAlias");
 				if(materialString.equalsIgnoreCase(itemAlias.get(i).split(",")[0])) {
-					material = Material.getMaterial(itemAlias.get(i).split(",")[1].toUpperCase());
+					String actualMaterial = itemAlias.get(i).split(",")[1];
+					//In case of an item ID
+					if(isInt(actualMaterial)) material = Material.getMaterial(Integer.parseInt(actualMaterial));
+					//Must be a material name
+					else material = Material.getMaterial(actualMaterial.toUpperCase());
+					//Should be an actual material
 					return material;
 				}
 				i++;
@@ -137,7 +142,10 @@ public class DkabotShop extends JavaPlugin {
 				return material;
 			}
 			else if(Material.getMaterial(materialString.toUpperCase()) == null) {
-				//Remains null
+				if(isInt(materialString)) {
+					material = Material.getMaterial(Integer.parseInt(materialString));
+				}
+				//Could return null or not.
 				return material;
 			}
 			//Actually does something.
@@ -177,7 +185,11 @@ public class DkabotShop extends JavaPlugin {
 				for(int i = 0; i < (getConfig().getStringList("ItemAlias")).size();) {
 					List<String> itemAlias = getConfig().getStringList("ItemAlias");
 					if(itemAlias.get(i).split(",").length != 2) itemsWrong.add("formatting,ItemAlias");
-					else if(Material.getMaterial(itemAlias.get(i).split(",")[1]) == null) itemsWrong.add("formatting,ItemAlias");
+					else {
+						String materialString = itemAlias.get(i).split(",")[1];
+						if(isInt(materialString)) if(Material.getMaterial(Integer.parseInt(materialString)) == null) itemsWrong.add("itemname,ItemAlias");
+						else if(Material.getMaterial(materialString) == null) itemsWrong.add("itemname,ItemAlias");
+					}
 					i++;
 				}
 				for(int i = 0; i < (getConfig().getStringList("Blacklist.Always").size());) {

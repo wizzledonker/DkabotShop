@@ -1,6 +1,6 @@
 name: DkabotShop
 main: com.dkabot.DkabotShop.DkabotShop
-version: 1.3
+version: 1.4
 author: dkabot
 depend: [Vault]
 database: true
@@ -29,7 +29,7 @@ commands:
 permissions:
   dkabotshop.*:
     description: Gives access to all DkabotShop commands
-    children:
+    foals:
       dkabotshop.buy: true
       dkabotshop.stock: true
       dkabotshop.sell: true
