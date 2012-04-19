@@ -187,7 +187,9 @@ public class DkabotShop extends JavaPlugin {
 					if(itemAlias.get(i).split(",").length != 2) itemsWrong.add("formatting,ItemAlias");
 					else {
 						String materialString = itemAlias.get(i).split(",")[1];
-						if(isInt(materialString)) if(Material.getMaterial(Integer.parseInt(materialString)) == null) itemsWrong.add("itemname,ItemAlias");
+						if(isInt(materialString)) {
+							if(Material.getMaterial(Integer.parseInt(materialString)) == null) itemsWrong.add("itemname,ItemAlias");
+						}
 						else if(Material.getMaterial(materialString) == null) itemsWrong.add("itemname,ItemAlias");
 					}
 					i++;
