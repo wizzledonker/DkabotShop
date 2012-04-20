@@ -1,6 +1,6 @@
 name: DkabotShop
 main: com.dkabot.DkabotShop.DkabotShop
-version: 1.4
+version: 1.4u1
 author: dkabot
 depend: [Vault]
 database: true

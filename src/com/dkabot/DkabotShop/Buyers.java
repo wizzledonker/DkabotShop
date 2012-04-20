@@ -11,7 +11,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.PagingList;
+import com.avaje.ebean.Query;
 
 public class Buyers implements CommandExecutor {
 	private DkabotShop plugin;
@@ -214,118 +216,16 @@ public class Buyers implements CommandExecutor {
 			Integer hyphenCount;
 			Integer page = 0;
 			String hyphens = "";
-			//In the event of all arguments, the second easiest one to do.
-			if(args.length == 3) {
-				//Get seller string
-				seller = args[0];
-				//Get Material
-				material = plugin.getMaterial(args[1], true, player);
-				//Check if a valid material
-				if(material == null) {
-					sender.sendMessage(ChatColor.RED + "Invalid item!");
-					return true;
-				}
-				//Not smuggling illegal items today!
-				if(plugin.illegalItem(material)) {
-					sender.sendMessage(ChatColor.RED + "Disallowed item!");
-					return true;
-				}
-				//Get page number
-				if(!plugin.isInt(args[2])) {
-					sender.sendMessage(ChatColor.RED + "Page number must be an integer.");
-					return true;
-				}
-				page = Integer.parseInt(args[2]) - 1;
-				DBPageList = plugin.getDatabase().find(DB_ForSale.class).where().ieq("seller", seller).eq("item", material.toString()).orderBy().desc("id").findPagingList(8);
+			Query<DB_ForSale> query = plugin.getDatabase().find(DB_ForSale.class).orderBy().desc("id");
+			ExpressionList<?> eList = query.where();
+			for(String arg : args) {
+				if(arg.contains("p") && plugin.isInt(arg.replace("p", ""))) page = Integer.parseInt(arg.replace("p", "")) - 1;
+				else if(plugin.getMaterial(arg, true, player) != null) material = plugin.getMaterial(arg, true, player);
+				else seller = arg;
 			}
-			
-			//In the event of two arguments, harder to do.
-			if(args.length == 2) {
-				//Try second argument as the page number
-				if(plugin.isInt(args[1])) page = Integer.parseInt(args[1]) - 1;
-				//Should it fail, it must be a material
-				else {
-					//Try second argument as a material
-					material = plugin.getMaterial(args[1], true, player);
-					//Someone is doing it wrong
-					if(material == null) {
-						sender.sendMessage(ChatColor.RED + "Invalid item / page number!");
-						return true;
-					}
-					//Thou shalt not use illegal items
-					if(plugin.illegalItem(material)) {
-						sender.sendMessage(ChatColor.RED + "Disallowed item!");
-						return true;
-					}
-				}
-				//Now to parse the first argument
-				//If the material is already set, it has to be seller
-				if(material != null) seller = args[0];
-				//Otherwise, we get to play the guessing game again!
-				else {
-					//Try first argument as an item first, I doubt a player name will match an item
-					material = plugin.getMaterial(args[1], true, player);
-					//Not a material, has to be a player
-					if(material == null) seller = args[0];
-					//NO! To your illegal items
-					else if(plugin.illegalItem(material))	{
-						sender.sendMessage(ChatColor.RED + "Disallowed item!");
-						return true;
-					}
-				}
-				if(material != null && seller != "") DBPageList = plugin.getDatabase().find(DB_ForSale.class).where().ieq("seller", seller).eq("item", material.toString()).orderBy().desc("id").findPagingList(8);
-				else if(material != null) DBPageList = plugin.getDatabase().find(DB_ForSale.class).where().eq("item", material.toString()).orderBy().desc("id").findPagingList(8);
-				else if(seller != "") DBPageList = plugin.getDatabase().find(DB_ForSale.class).where().ieq("seller", seller).orderBy().desc("id").findPagingList(8);
-				else {
-					sender.sendMessage(ChatColor.RED + "Invalid arguments!");
-					return true;
-				}
-			}
-			
-			//In case of one argument, the hardest
-			if(args.length == 1) {
-				//Try it as a material first
-				material = plugin.getMaterial(args[0], true, player);
-				//Out with ye, requester of illegal items!
-				if(material != null) {
-					if(plugin.illegalItem(material)) {
-						sender.sendMessage(ChatColor.RED + "Disallowed item!");
-						return true;
-					}
-					//Set DBPageList for an item
-					DBPageList = plugin.getDatabase().find(DB_ForSale.class).where().eq("item", material.toString()).orderBy().desc("id").findPagingList(8);
-				}
-				//Try for seller and page
-				else {
-					//Try for seller, messy but it works
-					if(!plugin.getDatabase().find(DB_ForSale.class).where().ieq("seller", args[0]).findList().isEmpty()) {
-						//Set seller
-						seller = args[0];
-						//Set the DBPageList for a seller
-						DBPageList = plugin.getDatabase().find(DB_ForSale.class).where().ieq("seller", seller).orderBy().desc("id").findPagingList(8);
-					}
-					//Must be a page number
-					else {
-						//...or not
-						if(!plugin.isInt(args[0])) {
-							sender.sendMessage("Invalid argument!");
-							return true;
-						}
-						//Set page number and get all the info
-						else {
-							page = Integer.parseInt(args[0]) - 1;
-							DBPageList = plugin.getDatabase().find(DB_ForSale.class).orderBy().desc("id").findPagingList(8);
-						}
-					}
-				}
-			}
-			
-			//In case of no arguments, the easiest
-			if(args.length == 0) {
-				//Get all the info, that's all that has to be done.
-				DBPageList = plugin.getDatabase().find(DB_ForSale.class).orderBy().desc("id").findPagingList(8);
-			}
-			
+			if(material != null) eList = eList.eq("item", material.toString());
+			if(seller != "") eList = eList.ieq("seller", seller);
+			DBPageList = query.findPagingList(8);
 			//Page number validation
 			if(page < 0) {
 				sender.sendMessage(ChatColor.RED + "Invalid page number!");
@@ -336,7 +236,8 @@ public class Buyers implements CommandExecutor {
 			
 			if(DBClass.isEmpty()) {
 				String message = "";
-				if(material != null && seller != "") message = seller + " is not selling any " + material.toString();
+				if(page > 1) message = "Page " + (page + 1) + " contains no results. Try page 1";
+				else if(material != null && seller != "") message = seller + " is not selling any " + material.toString();
 				else if(material != null) message = "Nobody is selling any " + material.toString();
 				else if(seller != "") message = seller + " is not selling anything";
 				else message = "Nobody is selling anything";
