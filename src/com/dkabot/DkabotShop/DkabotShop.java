@@ -164,8 +164,9 @@ public class DkabotShop extends JavaPlugin {
 			}
 		}
 		
+		//sets the default config
 		private void defaultConfig() {
-			//Create and set arrays
+			//Create and set string lists
 			List<String> blacklistAlways = new ArrayList<String>();
 			List<String> itemAlias = new ArrayList<String>();
 			blacklistAlways.add(Material.AIR.toString());
@@ -173,10 +174,12 @@ public class DkabotShop extends JavaPlugin {
 			//Add default config and save
 			getConfig().addDefault("Blacklist.Always", blacklistAlways);
 			getConfig().addDefault("ItemAlias", itemAlias);
+			getConfig().addDefault("AlternateBroadcasting", false);
 			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
 		
+		//Validates the config, as the function name seggusts
 		private List<String> validateConfig() {
 			try {
 				List<String> itemsWrong = new ArrayList<String>();
@@ -209,6 +212,7 @@ public class DkabotShop extends JavaPlugin {
 			}
 		}
 		
+		//checks if an item is on a blacklist. Boolean for now, but will become something else once a datavalue item blacklist is added
 		boolean illegalItem(Material material) {
 			for(int i = 0; i < getConfig().getStringList("Blacklist.Always").size();) {
 				String materialString = getConfig().getStringList("Blacklist.Always").get(i);
@@ -221,7 +225,7 @@ public class DkabotShop extends JavaPlugin {
 			return false;
 		}
 
-		
+		//function to give items, split into itemstacks based on item.getMaxStackSize()
 		Integer giveItem(ItemStack item, Player player) {
 			Integer fullItemStacks = item.getAmount() / item.getMaxStackSize();
 			Integer fullItemStacksRemaining = fullItemStacks;
@@ -250,5 +254,15 @@ public class DkabotShop extends JavaPlugin {
 			}
 			amountNotReturned = amountNotReturned + (fullItemStacksRemaining * item.getMaxStackSize()) + notReturnedAsInt;
 			return amountNotReturned;		
+		}
+		
+		//broadcasts messages
+		void broadcastMessage(String message) {
+			//In case alternate broadcasting is enabled, send the message to every player
+			if(getConfig().getBoolean("AlternateBroadcasting")) {
+				for (Player player : getServer().getOnlinePlayers()) player.sendMessage(message);
+			}
+			//In case alternate broadcasting is disabled (default), make the server send the message
+			else getServer().broadcastMessage(message);
 		}
 }

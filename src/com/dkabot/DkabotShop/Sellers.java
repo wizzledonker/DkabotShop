@@ -153,18 +153,18 @@ public class Sellers implements CommandExecutor {
 				DBClass.setAmount(amount);
 				DBClass.setCost(cost);
 				plugin.getDatabase().save(DBClass);
-				plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " is now selling " + ChatColor.GOLD + amount  + " " + material.toString() + ChatColor.BLUE + " for " + ChatColor.GOLD + cost + " " + currencyName + ChatColor.BLUE + " each.");
+				plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " is now selling " + ChatColor.GOLD + amount  + " " + material.toString() + ChatColor.BLUE + " for " + ChatColor.GOLD + cost + " " + currencyName + ChatColor.BLUE + " each.");
 			}
 			//Item is in shop, modify the entry
 			else {
 				//Set amount in the DB
 				DBClass.setAmount(DBClass.getAmount() + amount);
 				//Cost not changed, just broadcast
-				if(cost == null) plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has added " + ChatColor.GOLD + amount + ChatColor.BLUE + " more " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to their shop.");
+				if(cost == null) plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has added " + ChatColor.GOLD + amount + ChatColor.BLUE + " more " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to their shop.");
 				else {
 					//Cost changed, set cost and broadcast varied message.
 					DBClass.setCost(cost);
-					plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has added " + ChatColor.GOLD + amount + ChatColor.BLUE + " more " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to their shop and changed it's price to " + ChatColor.GOLD + cost + " " + currencyName);
+					plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has added " + ChatColor.GOLD + amount + ChatColor.BLUE + " more " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to their shop and changed it's price to " + ChatColor.GOLD + cost + " " + currencyName);
 				}
 				//Save new info to the DB
 				plugin.getDatabase().save(DBClass);
@@ -264,7 +264,7 @@ public class Sellers implements CommandExecutor {
 				//Inform the player of their lack of space
 				sender.sendMessage(ChatColor.GREEN + "You can only hold " + amountReturned + " of this, so you got that much back.");
 				//Tell the whole server what just happened
-				plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has reduced their shop's supply of " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to " + ChatColor.GOLD + amountNotReturned + ChatColor.BLUE + ".");
+				plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has reduced their shop's supply of " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to " + ChatColor.GOLD + amountNotReturned + ChatColor.BLUE + ".");
 				
 			}
 			else  {
@@ -272,12 +272,12 @@ public class Sellers implements CommandExecutor {
 					//Again, in case of /cancel item amount. Saves amount in DB and tells the server what happened.
 					DBClass.setAmount(amountNotReturned);
 					plugin.getDatabase().save(DBClass);
-					plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has reduced their shop's supply of " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to " + ChatColor.GOLD + amountNotReturned + ChatColor.BLUE + ".");
+					plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has reduced their shop's supply of " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to " + ChatColor.GOLD + amountNotReturned + ChatColor.BLUE + ".");
 				}
 				else {
 					//In case the supply was emptied, tell the whole server and delete the DB entry.
 					//If /cancel item amount depletes the supply, this is called instead.
-					plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has removed their " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " from their shop.");
+					plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has removed their " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " from their shop.");
 					plugin.getDatabase().delete(DBClass);
 				}
 			}
@@ -342,7 +342,7 @@ public class Sellers implements CommandExecutor {
 			if(cost == 1) currencyName = plugin.economy.currencyNameSingular();
 			else currencyName = plugin.economy.currencyNamePlural();
 			//Tell the whole server what just happened
-			plugin.getServer().broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has changed their shop's price of " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to " + ChatColor.GOLD + cost + " " + currencyName + ChatColor.BLUE + "." );
+			plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has changed their shop's price of " + ChatColor.GOLD + material.toString() + ChatColor.BLUE + " to " + ChatColor.GOLD + cost + " " + currencyName + ChatColor.BLUE + "." );
 			//If you reach here, success!
 			return true;
 		}

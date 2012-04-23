@@ -219,7 +219,7 @@ public class Buyers implements CommandExecutor {
 			Query<DB_ForSale> query = plugin.getDatabase().find(DB_ForSale.class).orderBy().desc("id");
 			ExpressionList<?> eList = query.where();
 			for(String arg : args) {
-				if(arg.contains("p") && plugin.isInt(arg.replace("p", ""))) page = Integer.parseInt(arg.replace("p", "")) - 1;
+				if(arg.contains("p") || arg.contains("P") && plugin.isInt(arg.replaceFirst("(?i)p", ""))) page = Integer.parseInt(arg.replaceFirst("(?i)p", "")) - 1;
 				else if(plugin.getMaterial(arg, true, player) != null) material = plugin.getMaterial(arg, true, player);
 				else seller = arg;
 			}
@@ -236,7 +236,7 @@ public class Buyers implements CommandExecutor {
 			
 			if(DBClass.isEmpty()) {
 				String message = "";
-				if(page > 1) message = "Page " + (page + 1) + " contains no results. Try page 1";
+				if(page > 0) message = "Page " + (page + 1) + " contains no results. Try page 1";
 				else if(material != null && seller != "") message = seller + " is not selling any " + material.toString();
 				else if(material != null) message = "Nobody is selling any " + material.toString();
 				else if(seller != "") message = seller + " is not selling anything";

@@ -45,7 +45,7 @@ public class History implements CommandExecutor {
 			Query<DB_History> query = plugin.getDatabase().find(DB_History.class).orderBy().desc("id");
 			ExpressionList<?> eList = query.where();
 			for(String arg : args) {
-				if(arg.contains("p") && plugin.isInt(arg.replace("p", ""))) page = Integer.parseInt(arg.replace("p", "")) - 1;
+				if(arg.contains("p") || arg.contains("P") && plugin.isInt(arg.replaceFirst("(?i)p", ""))) page = Integer.parseInt(arg.replaceFirst("(?i)p", "")) - 1;
 				else if(plugin.getMaterial(arg, true, player) != null) material = plugin.getMaterial(arg, true, player);
 			}
 			if(material != null) eList = eList.eq("item", material.toString());
@@ -57,7 +57,7 @@ public class History implements CommandExecutor {
 			DBClass = DBPageList.getPage(page).getList();
 			if(DBClass.isEmpty()) {
 				String message = "";
-				if(page > 1) message = "Page " + (page + 1) + " contains no results. Try page 1";
+				if(page > 0) message = "Page " + (page + 1) + " contains no results. Try page 1";
 				else if (material != null) message = "Nobody has sold any " + material.toString() + " yet.";
 				else message = "Nobody has sold anything yet.";
 				sender.sendMessage(ChatColor.RED + message);
