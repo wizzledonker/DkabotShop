@@ -1,6 +1,6 @@
 name: DkabotShop
 main: com.dkabot.DkabotShop.DkabotShop
-version: 1.4u2
+version: 1.5
 author: dkabot
 depend: [Vault]
 database: true
@@ -22,6 +22,7 @@ commands:
   stock:
     description: Look at current items for sale, with stock/prices.
     usage: /<command> [player] [item] [page] - Look at [page number [page] of] [[player]'s] items [or [item]] for sale.
+    aliases: [find]
   sales:
     description: Get a history of items sold
     usage: /<command> [item] [page] - Get [page number [page] of] sales history [of [item]].
@@ -29,7 +30,7 @@ commands:
 permissions:
   dkabotshop.*:
     description: Gives access to all DkabotShop commands
-    foals:
+    children:
       dkabotshop.buy: true
       dkabotshop.stock: true
       dkabotshop.sell: true
@@ -38,7 +39,6 @@ permissions:
       dkabotshop.sales: true
   dkabotshop.buy:
     description: Allows access to /buy
-    default: true
     default: true
   dkabotshop.stock:
     description: Allows access to /stock

@@ -3,11 +3,11 @@ package com.dkabot.DkabotShop;
 import java.util.List;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.PagingList;
@@ -30,13 +30,13 @@ public class History implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "You lack permission to do this.");
 				return true;
 			}
-			if(args.length > 2) {
+			if(args.length > 3) {
 				sender.sendMessage(ChatColor.RED + "Too many arguments.");
 				return true;
 			}
 			//Declare Variables
 			Player player = (Player) sender;
-			Material material = null;
+			ItemStack material = null;
 			Integer page = 0;
 			List<DB_History> DBClass = null;
 			PagingList<DB_History> DBPageList = null;
@@ -45,10 +45,10 @@ public class History implements CommandExecutor {
 			Query<DB_History> query = plugin.getDatabase().find(DB_History.class).orderBy().desc("id");
 			ExpressionList<?> eList = query.where();
 			for(String arg : args) {
-				if(arg.contains("p") || arg.contains("P") && plugin.isInt(arg.replaceFirst("(?i)p", ""))) page = Integer.parseInt(arg.replaceFirst("(?i)p", "")) - 1;
+				if((arg.contains("p") || arg.contains("P")) && plugin.isInt(arg.replaceFirst("(?i)p", ""))) page = Integer.parseInt(arg.replaceFirst("(?i)p", "")) - 1;
 				else if(plugin.getMaterial(arg, true, player) != null) material = plugin.getMaterial(arg, true, player);
 			}
-			if(material != null) eList = eList.eq("item", material.toString());
+			if(material != null) eList = eList.eq("item", material.getType().toString());
 			DBPageList = query.findPagingList(8);
 			if(page < 0) {
 				sender.sendMessage(ChatColor.RED + "Invalid page number!");
@@ -58,7 +58,7 @@ public class History implements CommandExecutor {
 			if(DBClass.isEmpty()) {
 				String message = "";
 				if(page > 0) message = "Page " + (page + 1) + " contains no results. Try page 1";
-				else if (material != null) message = "Nobody has sold any " + material.toString() + " yet.";
+				else if (material != null) message = "Nobody has sold any " + material.getType().toString() + " yet.";
 				else message = "Nobody has sold anything yet.";
 				sender.sendMessage(ChatColor.RED + message);
 				return true;
@@ -70,7 +70,7 @@ public class History implements CommandExecutor {
 				i++;
 			}
 			//send that confirmation message of what's being looked for!
-			if(material != null) sender.sendMessage(ChatColor.GREEN + "Items Sold, " + material.toString() + " Only:");
+			if(material != null) sender.sendMessage(ChatColor.GREEN + "Items Sold, " + material.getType().toString() + " Only:");
 			else sender.sendMessage(ChatColor.GREEN + "Items Sold, No Filer:");
 			//send that info!
 			sender.sendMessage(ChatColor.RED + hyphens + ChatColor.GRAY + " Page " + ChatColor.RED + (page + 1) + " " + hyphens);

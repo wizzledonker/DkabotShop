@@ -119,38 +119,53 @@ public class DkabotShop extends JavaPlugin {
 	        return (economy != null);
 	    }
 		
-		Material getMaterial(String materialString, boolean allowHand, Player player) {
-			Material material = null;
-			for(int i = 0; i < (getConfig().getStringList("ItemAlias")).size();) {
-				List<String> itemAlias = getConfig().getStringList("ItemAlias");
-				if(materialString.equalsIgnoreCase(itemAlias.get(i).split(",")[0])) {
-					String actualMaterial = itemAlias.get(i).split(",")[1];
-					//In case of an item ID
-					if(isInt(actualMaterial)) material = Material.getMaterial(Integer.parseInt(actualMaterial));
-					//Must be a material name
-					else material = Material.getMaterial(actualMaterial.toUpperCase());
-					//Should be an actual material
-					return material;
+		ItemStack getMaterial(String materialString, boolean allowHand, Player player) {
+			try{
+				Material material = null;
+				materialString = materialString.split(":")[0];
+				Byte dataValue = 0;
+				if(materialString.split(":").length > 1) {
+					try {
+						dataValue = Byte.parseByte(materialString.split(":")[1]);
+					}
+					catch(NumberFormatException nfe) {
+						dataValue = 0;
+					}
 				}
-				i++;
-			}
-			if(materialString.equalsIgnoreCase("hand")) {
-				if(allowHand) {
-					material = player.getItemInHand().getType();
-					//Could be null or a material... either.
+				for(int i = 0; i < (getConfig().getStringList("ItemAlias")).size();) {
+					List<String> itemAlias = getConfig().getStringList("ItemAlias");
+					if(materialString.equalsIgnoreCase(itemAlias.get(i).split(",")[0])) {
+						String actualMaterial = itemAlias.get(i).split(",")[1];
+						//In case of an item ID
+						if(isInt(actualMaterial)) material = Material.getMaterial(Integer.parseInt(actualMaterial));
+						//Must be a material name
+						else material = Material.getMaterial(actualMaterial.toUpperCase());
+						//Should be an actual material
+						return new ItemStack(material, 1, material.getMaxDurability(), dataValue);
+					}
+					i++;
 				}
-				return material;
-			}
-			else if(Material.getMaterial(materialString.toUpperCase()) == null) {
-				if(isInt(materialString)) {
-					material = Material.getMaterial(Integer.parseInt(materialString));
+				if(materialString.equalsIgnoreCase("hand")) {
+					if(allowHand) {
+						material = player.getItemInHand().getType();
+						//Could be null or a material... either.
+					}
+					return new ItemStack(material, 1, material.getMaxDurability(), dataValue);
 				}
-				//Could return null or not.
-				return material;
+				else if(Material.getMaterial(materialString.toUpperCase()) == null) {
+					if(isInt(materialString)) {
+						material = Material.getMaterial(Integer.parseInt(materialString));
+					}
+					//Could return null or not.
+					return new ItemStack(material, 1, material.getMaxDurability(), dataValue);
+				}
+				//Actually does something.
+				else material = Material.getMaterial(materialString.toUpperCase());
+				return new ItemStack(material, 1, material.getMaxDurability(), dataValue);
 			}
-			//Actually does something.
-			else material = Material.getMaterial(materialString.toUpperCase());
-			return material;
+			catch(Exception e) {
+				return null;
+			}
 		}
 		
 		Double getMoney(String s) {
@@ -213,13 +228,13 @@ public class DkabotShop extends JavaPlugin {
 		}
 		
 		//checks if an item is on a blacklist. Boolean for now, but will become something else once a datavalue item blacklist is added
-		boolean illegalItem(Material material) {
+		boolean illegalItem(ItemStack material) {
 			for(int i = 0; i < getConfig().getStringList("Blacklist.Always").size();) {
 				String materialString = getConfig().getStringList("Blacklist.Always").get(i);
 				if(isInt(materialString)) {
-					if(Material.getMaterial(Integer.parseInt(materialString)) == material) return true;
+					if(getMaterial(materialString, false, null) == material) return true;
 				}
-				else if(Material.getMaterial(materialString.toUpperCase()) == material) return true;
+				else if(getMaterial(materialString.toUpperCase(), false, null) == material) return true;
 				i++;
 			}		
 			return false;
@@ -245,7 +260,7 @@ public class DkabotShop extends JavaPlugin {
 				}
 			}
 			if(notReturnedAsInt != 0) notReturnedAsInt = notReturnedAsInt + nonFullItemStack;
-			else {
+			else if (nonFullItemStack != 0) {
 				HashMap<Integer, ItemStack> notReturned = player.getInventory().addItem(new ItemStack(item.getType(), nonFullItemStack));
 				for(int i = 0; i < notReturned.size();) {
 					notReturnedAsInt = notReturnedAsInt + notReturned.get(i).getAmount();
