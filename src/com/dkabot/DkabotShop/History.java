@@ -48,17 +48,24 @@ public class History implements CommandExecutor {
 				if((arg.contains("p") || arg.contains("P")) && plugin.isInt(arg.replaceFirst("(?i)p", ""))) page = Integer.parseInt(arg.replaceFirst("(?i)p", "")) - 1;
 				else if(plugin.getMaterial(arg, true, player) != null) material = plugin.getMaterial(arg, true, player);
 			}
-			if(material != null) eList = eList.eq("item", material.getType().toString());
-			DBPageList = query.findPagingList(8);
 			if(page < 0) {
 				sender.sendMessage(ChatColor.RED + "Invalid page number!");
 				return true;
+			}		
+			if(material != null) {
+				if(plugin.illegalItem(material)) {
+					sender.sendMessage(ChatColor.RED + "Disallowed Item!");
+					return true;
+				}
+				Integer itemID = material.getTypeId();
+				Short durability = material.getDurability();
+				eList = eList.eq("item", itemID.toString() + "" + durability.toString());
 			}
-			DBClass = DBPageList.getPage(page).getList();
+			DBPageList = query.findPagingList(8);DBClass = DBPageList.getPage(page).getList();
 			if(DBClass.isEmpty()) {
 				String message = "";
 				if(page > 0) message = "Page " + (page + 1) + " contains no results. Try page 1";
-				else if (material != null) message = "Nobody has sold any " + material.getType().toString() + " yet.";
+				else if (material != null) message = "Nobody has sold any " + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + " yet.";
 				else message = "Nobody has sold anything yet.";
 				sender.sendMessage(ChatColor.RED + message);
 				return true;
@@ -70,7 +77,7 @@ public class History implements CommandExecutor {
 				i++;
 			}
 			//send that confirmation message of what's being looked for!
-			if(material != null) sender.sendMessage(ChatColor.GREEN + "Items Sold, " + material.getType().toString() + " Only:");
+			if(material != null) sender.sendMessage(ChatColor.GREEN + "Items Sold, " + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + " Only:");
 			else sender.sendMessage(ChatColor.GREEN + "Items Sold, No Filer:");
 			//send that info!
 			sender.sendMessage(ChatColor.RED + hyphens + ChatColor.GRAY + " Page " + ChatColor.RED + (page + 1) + " " + hyphens);
@@ -79,7 +86,7 @@ public class History implements CommandExecutor {
 				String currencyName = "Error Getting Currency";
 				if(DB.getCost() == 1) currencyName = plugin.economy.currencyNameSingular();
 				else currencyName = plugin.economy.currencyNamePlural();
-				sender.sendMessage(ChatColor.GOLD + DB.getBuyer() + ChatColor.BLUE + " bought " + ChatColor.GOLD +  DB.getAmount() + " " + DB.getItem() + ChatColor.BLUE + " for about " + ChatColor.GOLD + DB.getCost() + " " + currencyName + ChatColor.BLUE + " each.");
+				sender.sendMessage(ChatColor.GOLD + DB.getBuyer() + ChatColor.BLUE + " bought " + ChatColor.GOLD +  DB.getAmount() + " " + plugin.itemDB.rget(DB.getItem()).toUpperCase() + ChatColor.BLUE + " for about " + ChatColor.GOLD + DB.getCost() + " " + currencyName + ChatColor.BLUE + " each.");
 				i++;
 			}
 			if(DBPageList.getPage(page).hasNext()) sender.sendMessage(ChatColor.GREEN + "There is a next page in this list!");
