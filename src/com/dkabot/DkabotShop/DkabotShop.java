@@ -1,5 +1,6 @@
 package com.dkabot.DkabotShop;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +19,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.dkabot.Metrics.Metrics;
 
 public class DkabotShop extends JavaPlugin {
 	public static DkabotShop plugin;
@@ -74,6 +77,15 @@ public class DkabotShop extends JavaPlugin {
 		getCommand("cancel").setExecutor(Sell);
 		getCommand("price").setExecutor(Sell);
 		getCommand("sales").setExecutor(Hist);defaultConfig();
+		
+		//Plugin Metrics
+		try {
+		    Metrics metrics = new Metrics(this);
+		    metrics.start();
+		}
+		catch (IOException ex) {
+			log.warning("[DkabotShop] Failed to start plugin metrics :(");
+		}
 		
 		log.info(getDescription().getName() + " version " + getDescription().getVersion() + " is now enabled,");
 	}
@@ -167,6 +179,7 @@ public class DkabotShop extends JavaPlugin {
 			if(materialString.equalsIgnoreCase("hand")) {
 				if(allowHand) {
 					material = player.getItemInHand().getType();
+					dataValue = player.getItemInHand().getDurability();
 				}
 				else return null; //if hand is not allowed and it's not an alias, not bothering
 			}
