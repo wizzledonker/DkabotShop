@@ -209,7 +209,7 @@ public class DkabotShop extends JavaPlugin {
 			try {
 				Double d = Double.parseDouble(s);
 				DecimalFormat twoDForm = new DecimalFormat("#.00");
-				return Double.valueOf(twoDForm.format(d));
+				return Double.parseDouble(twoDForm.format(d));
 			}
 			catch(NumberFormatException e) {
 				return null;
