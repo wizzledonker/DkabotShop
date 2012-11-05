@@ -221,7 +221,7 @@ public class DkabotShop extends JavaPlugin {
 			//Create and set string lists
 			List<String> blacklistAlways = new ArrayList<String>();
 			List<String> itemAlias = new ArrayList<String>();
-			blacklistAlways.add("0");
+			blacklistAlways.add("137");
 			itemAlias.add("creepstone,24:1");
 			//Add default config and save
 			getConfig().addDefault("Blacklist.Always", blacklistAlways);
