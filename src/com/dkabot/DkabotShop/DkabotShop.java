@@ -76,7 +76,8 @@ public class DkabotShop extends JavaPlugin {
 		getCommand("sell").setExecutor(Sell);
 		getCommand("cancel").setExecutor(Sell);
 		getCommand("price").setExecutor(Sell);
-		getCommand("sales").setExecutor(Hist);defaultConfig();
+		getCommand("sales").setExecutor(Hist);
+		defaultConfig();
 		
 		//Plugin Metrics
 		try {
@@ -227,6 +228,7 @@ public class DkabotShop extends JavaPlugin {
 			getConfig().addDefault("Blacklist.Always", blacklistAlways);
 			getConfig().addDefault("ItemAlias", itemAlias);
 			getConfig().addDefault("AlternateBroadcasting", false);
+			getConfig().addDefault("AlwaysBuyAvailable", false);
 			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}

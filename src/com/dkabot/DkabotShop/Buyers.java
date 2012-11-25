@@ -99,28 +99,37 @@ public class Buyers implements CommandExecutor {
 				}
 			}
 			//Get all instances of this item for sale, save for the ones sold by the buyer
-			List<DB_ForSale> DBClass = plugin.getDatabase().find(DB_ForSale.class).where().eq("item", itemID.toString() + ":" + durability.toString()).ne("seller", sender.getName()).orderBy().asc("cost").findList();
+			Query<DB_ForSale> query = plugin.getDatabase().find(DB_ForSale.class).orderBy().asc("cost");
+			ExpressionList<?> eList = query.where().eq("item", itemID.toString() + ":" + durability.toString()).ne("seller", sender.getName());
+			//Max price check, if applicable
+			if(maxPrice != null) eList = eList.le("cost", maxPrice);
+			List<DB_ForSale> DBClass = query.findList();
 			//Loop through all the entries
 			for(sellers = 0; sellers < DBClass.size();) {
 				//Get the specific entry
 				DB_ForSale tmpDB = DBClass.get(sellers);
-				//Max price check, if applicable
-				if(maxPrice != null && tmpDB.getCost() > maxPrice) break;
 				//Previous amount remaining to be bought, for calculations
 				prevAmountRemaining = amountRemaining;
 				//Set amount remaining
 				amountRemaining = amountRemaining - tmpDB.getAmount();
 				//If the amount to buy has been reached
 				if(amountRemaining <= 0) {
-					//Set new amount in the shop
+					//Set last seller amount
 					lastSellerAmount = prevAmountRemaining;
 					//Add to the total cost for the buyer
-					totalCost = totalCost + prevAmountRemaining * tmpDB.getCost();
+					totalCost = totalCost + (prevAmountRemaining * tmpDB.getCost());
+					break;
+				}
+				else if(sellers + 1 == DBClass.size()) {
+					//Set last seller amount
+					lastSellerAmount = tmpDB.getAmount();
+					//Add to the total cost for the buyer
+					totalCost = totalCost + (tmpDB.getAmount() * tmpDB.getCost());
 					break;
 				}
 				else {
 					//Add to the total cost for the buyer
-					totalCost = totalCost + tmpDB.getAmount() * tmpDB.getCost();
+					totalCost = totalCost + (tmpDB.getAmount() * tmpDB.getCost());
 				}
 				//Continue through the loop
 				sellers++;
@@ -132,8 +141,15 @@ public class Buyers implements CommandExecutor {
 			}
 			//Check if not enough items fit the criteria
 			if(amountRemaining > 0) {
-				sender.sendMessage(ChatColor.RED + "There isn't enough for sale!");
-				return true;
+				if(plugin.getConfig().getBoolean("AlwaysBuyAvailable")) {
+					sender.sendMessage(ChatColor.GOLD + "There isn't " + amount.toString() + " for sale, only " + (amount - amountRemaining) + ". Attempting to buy that much.");
+					//The amount variable is used by some output messages
+					amount = amount - amountRemaining;
+				}
+				else {
+					sender.sendMessage(ChatColor.RED + "There isn't enough for sale!");
+					return true;
+				}
 			}
 			//Check if the buyer has enough funds
 			if(plugin.economy.getBalance(sender.getName()) < totalCost) {
@@ -142,7 +158,7 @@ public class Buyers implements CommandExecutor {
 			}
 			//Finally, the transaction actually takes place!
 			//Give the player items
-			for(Integer i = 0; i < sellers + 1;) {
+			for(Integer i = 0; i <= sellers;) {
 				if(i < sellers) {
 					DB_ForSale tmpDB = DBClass.get(i);
 					amountGiven = amountGiven + tmpDB.getAmount();

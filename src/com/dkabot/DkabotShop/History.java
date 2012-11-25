@@ -59,9 +59,10 @@ public class History implements CommandExecutor {
 				}
 				Integer itemID = material.getTypeId();
 				Short durability = material.getDurability();
-				eList = eList.eq("item", itemID.toString() + "" + durability.toString());
+				eList = eList.eq("item", itemID.toString() + ":" + durability.toString());
 			}
-			DBPageList = query.findPagingList(8);DBClass = DBPageList.getPage(page).getList();
+			DBPageList = query.findPagingList(8);
+			DBClass = DBPageList.getPage(page).getList();
 			if(DBClass.isEmpty()) {
 				String message = "";
 				if(page > 0) message = "Page " + (page + 1) + " contains no results. Try page 1";
