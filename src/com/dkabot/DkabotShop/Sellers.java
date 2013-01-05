@@ -100,24 +100,29 @@ public class Sellers implements CommandExecutor {
 				}
 			//Manually set cost if the user chooses to do so
 			if(args.length == 3) {
-				cost = plugin.getMoney(args[2]);
+				cost = plugin.getMoneyPlayer(args[2], (Player)sender);
 				//Check validity of price
-				if(cost == null) {
-					sender.sendMessage(ChatColor.RED + "Invalid cost amount!");
-					return true;
-				}
-				//Check the price is positive and not 0
-				if(cost <= 0) {
-					sender.sendMessage(ChatColor.RED + "The cost cannot be 0 or negative!");
-					return true;
-				}
-				if(DBClass != null && cost == DBClass.getCost()) {
+				if(cost == null) return true;
+				if(DBClass != null && cost.equals(DBClass.getCost())) {
 					sender.sendMessage(ChatColor.RED + "The cost entered matches the current cost!");
 					cost = null;
 				}
 			} 
 			//So Eclipse won't say cost wasn't initialized
 			else cost = null;
+			//Make sure it's not too much to sell
+			if(!sender.hasPermission("dkabotshopadmin.bypassMaxStock")) {
+				Integer maxStock = plugin.getConfig().getInt("MaxStock");
+				if(maxStock != -1) {
+					Boolean check = false;
+					if(DBClass != null) check = (DBClass.getAmount() + amount > maxStock);
+					else check = (amount > maxStock);
+					if(check) {
+						sender.sendMessage(ChatColor.RED + "You can't stock your shop with more than " + maxStock + " of an item!");
+						return true;
+					}
+				}
+			}
 			//Setting currency name, gotta get plurals right
 			if(cost != null) {
 				if(cost == 1) currencyName = plugin.economy.currencyNameSingular();
@@ -156,18 +161,18 @@ public class Sellers implements CommandExecutor {
 				DBClass.setAmount(amount);
 				DBClass.setCost(cost);
 				plugin.getDatabase().save(DBClass);
-				plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " is now selling " + ChatColor.GOLD + amount  + " " + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " for " + ChatColor.GOLD + cost + " " + currencyName + ChatColor.BLUE + " each.");
+				plugin.broadcastMessage(plugin.formatMessage("NewlySelling", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), amount, cost, currencyName));
 			}
 			//Item is in shop, modify the entry
 			else {
 				//Set amount in the DB
 				DBClass.setAmount(DBClass.getAmount() + amount);
 				//Cost not changed, just broadcast
-				if(cost == null) plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has added " + ChatColor.GOLD + amount + ChatColor.BLUE + " more " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " to their shop.");
+				if(cost == null) plugin.broadcastMessage(plugin.formatMessage("Added", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), amount, null, null));
 				else {
 					//Cost changed, set cost and broadcast varied message.
 					DBClass.setCost(cost);
-					plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has added " + ChatColor.GOLD + amount + ChatColor.BLUE + " more " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " to their shop and changed it's price to " + ChatColor.GOLD + cost + " " + currencyName);
+					plugin.broadcastMessage(plugin.formatMessage("AddedPriceChange", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), amount, cost, currencyName));
 				}
 				//Save new info to the DB
 				plugin.getDatabase().save(DBClass);
@@ -272,7 +277,7 @@ public class Sellers implements CommandExecutor {
 				//Inform the player of their lack of space
 				sender.sendMessage(ChatColor.GREEN + "You can only hold " + amountReturned + " of this, so you got that much back.");
 				//Tell the whole server what just happened
-				plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has reduced their shop's supply of " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " to " + ChatColor.GOLD + amountNotReturned + ChatColor.BLUE + ".");
+				plugin.broadcastMessage(plugin.formatMessage("RemovedSome", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), amountNotReturned, null, null));
 				
 			}
 			else  {
@@ -280,12 +285,12 @@ public class Sellers implements CommandExecutor {
 					//Again, in case of /cancel item amount. Saves amount in DB and tells the server what happened.
 					DBClass.setAmount(amountNotReturned);
 					plugin.getDatabase().save(DBClass);
-					plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has reduced their shop's supply of " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " to " + ChatColor.GOLD + amountNotReturned + ChatColor.BLUE + ".");
+					plugin.broadcastMessage(plugin.formatMessage("RemovedSome", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), amountNotReturned, null, null));
 				}
 				else {
 					//In case the supply was emptied, tell the whole server and delete the DB entry.
 					//If /cancel item amount depletes the supply, this is called instead.
-					plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has removed their " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " from their shop.");
+					plugin.broadcastMessage(plugin.formatMessage("RemovedAll", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), null, null, null));
 					plugin.getDatabase().delete(DBClass);
 				}
 			}
@@ -311,19 +316,11 @@ public class Sellers implements CommandExecutor {
 			}
 			//Declare and initialize variables
 			ItemStack material = plugin.getMaterial(args[0], true, (Player) sender);
-			Double cost = plugin.getMoney(args[1]);
+			Double cost = plugin.getMoneyPlayer(args[1], (Player)sender);
 			Integer itemID;
 			Short durability;
 			//Check for an invalid price
-			if(cost == null) {
-				sender.sendMessage(ChatColor.RED + "Invalid cost amount!");
-				return true;
-			}
-			//Check the price is positive and not 0
-			if(cost <= 0) {
-				sender.sendMessage(ChatColor.RED + "The cost cannot be 0 or negative!");
-				return true;
-			}
+			if(cost == null) return true;
 			//Check for a valid material;
 			if(material == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid Item!");
@@ -355,7 +352,7 @@ public class Sellers implements CommandExecutor {
 			if(cost == 1) currencyName = plugin.economy.currencyNameSingular();
 			else currencyName = plugin.economy.currencyNamePlural();
 			//Tell the whole server what just happened
-			plugin.broadcastMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " has changed their shop's price of " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + " to " + ChatColor.GOLD + cost + " " + currencyName + ChatColor.BLUE + "." );
+			plugin.broadcastMessage(plugin.formatMessage("PriceChange", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), null, cost, currencyName));
 			//If you reach here, success!
 			return true;
 		}

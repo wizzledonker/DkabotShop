@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 
@@ -26,7 +27,41 @@ public class ManagedFile
 		{
 			try
 			{
-				if (!file.delete())
+				Scanner scan = new Scanner(file);
+				String line1 = null;
+				if(scan.hasNextLine()) line1 = scan.nextLine();
+				scan.close();
+				Boolean fileOK = false;
+				String itemVersionString = null;
+				String pluginVersionString = plugin.getDescription().getVersion().trim();
+				Double itemVersion = null;
+				Double pluginVersion = null;
+				if(line1 != null) itemVersionString = line1.split("#version: ")[1].trim();
+				if(itemVersionString != null && plugin.isDouble(itemVersionString)) itemVersion = Double.parseDouble(itemVersionString);
+				if(itemVersion != null && itemVersion == -1) {
+					fileOK = true;
+					plugin.log.info("[DkabotShop] items.csv version set to -1, version check SKIPPED");
+				}
+				else {
+					if(itemVersion != null && plugin.isDouble(pluginVersionString)) pluginVersion = Double.parseDouble(pluginVersionString);
+					if(pluginVersion != null) {
+						if(pluginVersion.equals(itemVersion)) {
+							fileOK = true;
+							plugin.log.info("[DkabotShop] items.csv version matches plugin version OK");
+						}
+						else if (pluginVersion > itemVersion) {
+							//fileOK is already false
+							plugin.log.info("[DkabotShop] items.csv version below plugin version UPDATING AND REPLACING");
+						}
+						else {
+							fileOK = true;
+							plugin.log.info("[DkabotShop] items.csv version above plugin version. NOT OK BUT NOT REPLACING");
+							plugin.log.info("[DkabotShop] If you wish to disable overwrite set version to -1");
+						}
+					}
+				}
+				if(!fileOK) plugin.log.info("[DkabotShop] items.csv being rewritten - either updating or the version check failed");
+				if (!fileOK && !file.delete())
 				{
 					throw new IOException("Could not delete file " + file.toString());
 				}

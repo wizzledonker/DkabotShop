@@ -61,6 +61,7 @@ public class Buyers implements CommandExecutor {
 			Integer sellers;
 			Player player = (Player) sender;
 			String currencyName = "Error Getting Currency";
+			String messageType = null;
 			//Item validation
 			material = plugin.getMaterial(args[0], true, player);
 			if(material == null) {
@@ -153,7 +154,10 @@ public class Buyers implements CommandExecutor {
 			}
 			//Check if the buyer has enough funds
 			if(plugin.economy.getBalance(sender.getName()) < totalCost) {
-				sender.sendMessage(ChatColor.RED + "You lack enough funds, you need " + ChatColor.YELLOW + (totalCost - plugin.economy.getBalance(sender.getName())) + ChatColor.RED + " more Sky Coins!");
+				Double amountNeeded = totalCost - plugin.economy.getBalance(sender.getName());
+				if(amountNeeded == 1) currencyName = plugin.economy.currencyNameSingular();
+				else currencyName = plugin.economy.currencyNamePlural();
+				sender.sendMessage(ChatColor.RED + "You lack enough funds, you need " + ChatColor.YELLOW + amountNeeded + ChatColor.RED + " more " + currencyName + "!");
 				return true;
 			}
 			//Finally, the transaction actually takes place!
@@ -187,17 +191,23 @@ public class Buyers implements CommandExecutor {
 				//For any and all sellers sold out, give them money and remove their DB entry
 				plugin.economy.depositPlayer(tmpDB.getSeller(), tmpDB.getAmount() * tmpDB.getCost());
 				Player seller = Bukkit.getServer().getPlayer(tmpDB.getSeller());
-				if(seller != null) seller.sendMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " bought all of your shop's " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + "!");
+				if(seller != null) seller.sendMessage(plugin.formatMessage("ShopBoughtAll", sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), null, null, null));
 				plugin.getDatabase().delete(tmpDB);
 				i++;
 			}
 			//Set shop amount for final seller and give them money
 				DB_ForSale finalSellerDB = DBClass.get(sellers);
-				if(finalSellerDB.getAmount() - lastSellerAmount <= 0) plugin.getDatabase().delete(finalSellerDB);
-				else finalSellerDB.setAmount(finalSellerDB.getAmount() - lastSellerAmount);
+				if(finalSellerDB.getAmount() - lastSellerAmount <= 0) {
+					messageType = "ShopBoughtAll";
+					plugin.getDatabase().delete(finalSellerDB);
+				}
+				else {
+					messageType = "ShopBoughtSome";
+					finalSellerDB.setAmount(finalSellerDB.getAmount() - lastSellerAmount);
+				}
 				plugin.economy.depositPlayer(finalSellerDB.getSeller(), lastSellerAmount * finalSellerDB.getCost());
 				Player finalSeller = Bukkit.getServer().getPlayer(finalSellerDB.getSeller());
-				if(finalSeller != null) finalSeller.sendMessage(ChatColor.GOLD + sender.getName() + ChatColor.BLUE + " bought " + ChatColor.GOLD + lastSellerAmount + ChatColor.BLUE + " of your shop's " + ChatColor.GOLD + plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase() + ChatColor.BLUE + "!");
+				if(finalSeller != null) finalSeller.sendMessage(plugin.formatMessage(messageType, sender.getName(), plugin.itemDB.rget(material.getTypeId(), material.getDurability()).toUpperCase(), lastSellerAmount, null, null));
 				plugin.getDatabase().save(DBClass);
 				//Get a new instance of the Transaction Logging table and log the transaction
 				DB_History transactionLog = new DB_History();
