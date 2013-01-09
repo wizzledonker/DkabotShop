@@ -1,6 +1,6 @@
 name: DkabotShop
 main: com.dkabot.DkabotShop.DkabotShop
-version: 1.7.1
+version: 1.71
 author: dkabot
 depend: [Vault]
 database: true
@@ -42,6 +42,8 @@ permissions:
     children:
       dkabotshopadmin.bypassMaxPrice: true
       dkabotshopadmin.bypassMinPrice: true
+      dkabotshopadmin.bypassMaxStock: true
+    default: op
   dkabotshopadmin.bypassMaxPrice:
     description: Allows bypass of maximum sell price
     default: op
