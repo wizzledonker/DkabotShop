@@ -270,6 +270,7 @@ public class DkabotShop extends JavaPlugin {
 			//Add default config and save
 			getConfig().addDefault("Blacklist.Always", blacklistAlways);
 			getConfig().addDefault("ItemAlias", itemAlias);
+			getConfig().addDefault("DisableBroadcasting", false);
 			getConfig().addDefault("AlternateBroadcasting", false);
 			getConfig().addDefault("AlwaysBuyAvailable", false);
 			getConfig().addDefault("MaxStock", -1);
@@ -358,6 +359,8 @@ public class DkabotShop extends JavaPlugin {
 		
 		//broadcasts messages
 		void broadcastMessage(String message) {
+			//In case broadcasting is disabled, just exit now
+			if(getConfig().getBoolean("DisableBroadcasting")) return;
 			//In case alternate broadcasting is enabled, send the message to every player
 			if(getConfig().getBoolean("AlternateBroadcasting")) {
 				for (Player player : getServer().getOnlinePlayers()) player.sendMessage(message);
